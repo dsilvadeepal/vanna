@@ -654,6 +654,20 @@ class Agent:
             else:
                 response = await self._send_llm_request(request)
 
+            if (
+                self.audit_logger
+                and self.config.audit_config.enabled
+                and self.config.audit_config.log_ai_responses
+            ):
+                await self.audit_logger.log_ai_response(
+                    user=user,
+                    conversation_id=conversation_id,
+                    request_id=request_id,
+                    response_text=response.content or "",
+                    tool_calls=response.tool_calls or [],
+                    include_full_text=self.config.audit_config.include_full_ai_responses,
+                )
+
             # Handle tool calls
             if response.is_tool_call():
                 tool_iterations += 1
